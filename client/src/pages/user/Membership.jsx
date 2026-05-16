@@ -73,8 +73,8 @@ export default function Membership() {
                    <AlertTriangle size={20} className="text-red-600" />}
                   <span className="text-sm font-bold uppercase text-[#111]">{currentStatus.replace('_', ' ')}</span>
                 </div>
-                <h2 className="text-2xl font-bold text-[#111]">{plan?.name || 'No Plan'}</h2>
-                <p className="text-sm text-[#666] mt-1">{plan?.durationValue ? `${plan.durationValue} ${plan.durationUnit}` : plan?.duration || `${plan?.durationDays} days`}</p>
+                <h2 className="text-3xl font-bold font-serif text-[#111] tracking-tight">{plan?.name || 'No Plan'}</h2>
+                <p className="text-sm text-[#666] mt-1 capitalize">{plan?.durationValue ? `${plan.durationValue} ${plan.durationUnit}` : plan?.duration || `${plan?.durationDays || 30} days`}</p>
               </div>
               {!isPending && !isExpired && (
                 <div className="text-right">

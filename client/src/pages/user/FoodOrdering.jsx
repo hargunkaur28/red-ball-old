@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import api from '../../lib/axios';
 import useCartStore from '../../store/cartStore';
 import PageHeader from '../../components/shared/PageHeader';
@@ -10,9 +11,12 @@ export default function FoodOrdering() {
   const { data } = useQuery({ queryKey: ['menu'], queryFn: () => api.get('/menu').then(r => r.data) });
   const { items, addItem, getItemCount, getSubtotal } = useCartStore();
 
-  const handleAddItem = (item, size) => {
-    addItem({ menuItemId: item._id, name: item.name, size: size.label, price: size.price });
-    toast.success(`${item.name} added to cart`);
+  const navigate = useNavigate();
+
+  const handleAddItem = (e) => {
+    e.stopPropagation();
+    toast.info('Please scan your table QR code to place an order.');
+    navigate('/table-portal');
   };
 
   return (
@@ -25,7 +29,8 @@ export default function FoodOrdering() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {(data?.items || []).filter(i => i.isAvailable).map((item, idx) => (
           <motion.div key={item._id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
-            className="card hover:border-[#EAEAEA] transition-all">
+            onClick={() => navigate('/table-portal')}
+            className="card hover:border-[#EAEAEA] transition-all cursor-pointer">
             <div className="flex items-start justify-between mb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -40,7 +45,7 @@ export default function FoodOrdering() {
             </div>
             <div className="flex flex-wrap gap-2">
               {item.sizes?.map(size => (
-                <button key={size.label} onClick={() => handleAddItem(item, size)}
+                <button key={size.label} onClick={handleAddItem}
                   className="btn-ghost text-xs flex items-center gap-1 hover:border-black/20">
                   {size.label} · {formatCurrency(size.price)} <span className="text-black">+</span>
                 </button>
