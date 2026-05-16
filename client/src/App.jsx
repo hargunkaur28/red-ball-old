@@ -14,7 +14,7 @@ import RestaurantLayout from './components/layout/RestaurantLayout';
 import ReceptionLayout from './components/layout/ReceptionLayout';
 
 // Auth (loaded eagerly — it's the entry point)
-import Login from './pages/auth/Login';
+import Auth from './pages/auth/Auth';
 import Home from './pages/Home';
 
 // ── Lazy-loaded Pages ──────────────────────────────────────────────
@@ -86,7 +86,7 @@ export default function App() {
           <Suspense fallback={<RouteLoader />}>
             <Routes>
               {/* Public Routes */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/login" element={<Auth />} />
               <Route path="/table-portal" element={<TablePortal />} />
               <Route path="/table/:tableId" element={<TableOrder />} />
 

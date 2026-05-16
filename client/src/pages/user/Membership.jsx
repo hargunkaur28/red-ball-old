@@ -6,7 +6,7 @@ import useAuthStore from '../../store/authStore';
 import PageHeader from '../../components/shared/PageHeader';
 import { formatCurrency } from '../../lib/utils';
 import { toast } from 'sonner';
-import { Trophy, Calendar, CreditCard, Clock, AlertTriangle, CheckCircle, Download, RefreshCw, QrCode, Share } from 'lucide-react';
+import { Trophy, Calendar, CreditCard, Clock, AlertTriangle, CheckCircle, Download, RefreshCw, QrCode, Share, Check } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { useRef } from 'react';
@@ -97,7 +97,7 @@ export default function Membership() {
                   {currentStatus === 'active' || currentStatus === 'frozen' ? <CheckCircle size={20} className="text-green-600" /> :
                    currentStatus === 'pending' ? <Clock size={20} className="text-amber-600" /> :
                    currentStatus === 'expiring_soon' ? <AlertTriangle size={20} className="text-orange-600" /> :
-                   <AlertTriangle size={20} className="text-red-600" />}
+                   <CheckCircle size={20} className="text-red-600" />}
                   <span className="text-sm font-bold uppercase text-[#111]">{currentStatus.replace('_', ' ')}</span>
                 </div>
                 <h2 className="text-3xl font-bold font-serif text-[#111] tracking-tight">{plan?.name || 'No Plan'}</h2>
@@ -132,7 +132,10 @@ export default function Membership() {
 
             {isPending && (
               <div className="mt-4 p-3 bg-white/50 rounded-xl">
-                <p className="text-sm font-medium text-amber-800">⚠ Your membership is pending payment. Please visit reception to complete payment.</p>
+                <p className="text-sm font-medium text-amber-800 flex items-center gap-2">
+                  <Check size={16} className="shrink-0" /> 
+                  Your membership is pending payment. Please visit reception to complete payment.
+                </p>
               </div>
             )}
           </motion.div>
