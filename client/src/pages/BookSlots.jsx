@@ -5,7 +5,8 @@ import api from '../lib/axios';
 import PageHeader from '../components/shared/PageHeader';
 import { formatCurrency } from '../lib/utils';
 import { toast } from 'sonner';
-import { Calendar, MapPin, Clock, Users, Check, X } from 'lucide-react';
+import { Calendar, MapPin, Clock, Users, Check, X, QrCode } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 
 const sports = ['cricket', 'badminton', 'swimming', 'gym', 'turf'];
 
@@ -21,6 +22,7 @@ export default function BookSlots() {
   });
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [showBookingModal, setShowBookingModal] = useState(false);
+  const [qrBooking, setQrBooking] = useState(null);
 
   // Fetch available slots
   const { data: slotsData, isLoading } = useQuery({
@@ -236,17 +238,28 @@ export default function BookSlots() {
                 <p className="text-xs text-[#888888] mb-2">{booking.numberOfPlayers} player(s)</p>
                 <p className="text-sm font-semibold text-blue-700 mb-3">{formatCurrency(booking.price)}</p>
                 {booking.status === 'confirmed' && (
-                  <button
-                    onClick={() => {
-                      if (confirm('Cancel this booking?')) {
-                        cancelBookingMutation.mutate(booking._id);
-                      }
-                    }}
-                    disabled={cancelBookingMutation.isPending}
-                    className="btn-ghost text-sm text-red-600 w-full"
-                  >
-                    Cancel Booking
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setQrBooking(booking)}
+                      className="btn-primary text-xs flex-1 flex items-center justify-center gap-1 py-2"
+                    >
+                      <QrCode size={14} /> Entry Pass
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (confirm('Cancel this booking?')) {
+                          cancelBookingMutation.mutate(booking._id);
+                        }
+                      }}
+                      disabled={cancelBookingMutation.isPending}
+                      className="btn-ghost text-xs text-red-600 flex-1 py-2"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+                {booking.status === 'checked-in' && (
+                   <p className="text-xs text-center text-blue-600 font-semibold bg-white p-2 rounded border border-blue-100">Checked-In</p>
                 )}
               </div>
             ))}
@@ -338,6 +351,52 @@ export default function BookSlots() {
                 </button>
               </div>
             </form>
+          </motion.div>
+        </motion.div>
+      )}
+
+      {/* QR Code Pass Modal */}
+      {qrBooking && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          onClick={() => setQrBooking(null)}
+        >
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="w-16 h-16 bg-black text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-lg">
+              <QrCode size={32} />
+            </div>
+            <h2 className="text-2xl font-black text-black mb-2 uppercase tracking-tight">Entry Pass</h2>
+            <p className="text-[#666] text-sm mb-8 font-medium">Show this code at the reception scanner to check in.</p>
+            
+            <div className="bg-white p-4 rounded-3xl inline-block shadow-sm border border-gray-100 mb-8">
+              <QRCodeSVG 
+                value={qrBooking._id} 
+                size={220} 
+                level="Q" 
+                includeMargin={true}
+                className="rounded-xl"
+              />
+            </div>
+            
+            <div className="bg-[#F7F7F7] p-4 rounded-2xl mb-6 text-left">
+              <p className="text-xs text-[#888] font-bold uppercase tracking-wider mb-1">Session Details</p>
+              <p className="font-bold text-[#111]">{qrBooking.slotName || 'Sport Session'}</p>
+              <p className="text-sm font-medium text-[#666] flex items-center gap-1 mt-1"><Clock size={14}/> {qrBooking.startTime} - {qrBooking.endTime}</p>
+            </div>
+
+            <button 
+              onClick={() => setQrBooking(null)}
+              className="btn-ghost w-full py-3 rounded-xl font-bold hover:bg-gray-100 transition-colors"
+            >
+              Close Pass
+            </button>
           </motion.div>
         </motion.div>
       )}

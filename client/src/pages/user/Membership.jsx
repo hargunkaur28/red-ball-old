@@ -31,6 +31,7 @@ export default function Membership() {
   const plan = m?.planId;
   const payment = m?.paymentId;
   const msLeft = m?.endDate ? Math.max(0, new Date(m.endDate) - new Date()) : 0;
+  const daysLeft = Math.ceil(msLeft / (1000 * 60 * 60 * 24));
   
   let timeLeftDisplay = '';
   if (msLeft > 24 * 60 * 60 * 1000) timeLeftDisplay = `${Math.ceil(msLeft / (24 * 60 * 60 * 1000))} days`;
@@ -84,12 +85,19 @@ export default function Membership() {
             </div>
 
             {/* Progress bar */}
-            {m.status === 'active' && plan?.durationDays && (
+            {m.status === 'active' && (
               <div className="mt-4">
-                <div className="w-full bg-white/60 rounded-full h-2">
+                <div className="w-full bg-black/5 rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-green-500 rounded-full h-2 transition-all"
-                    style={{ width: `${Math.max(0, (daysLeft / plan.durationDays) * 100)}%` }}
+                    style={{ 
+                      width: `${Math.min(100, Math.max(0, (daysLeft / (
+                        plan?.durationUnit === 'months' ? plan.durationValue * 30 :
+                        plan?.durationUnit === 'years' ? plan.durationValue * 365 :
+                        plan?.durationUnit === 'days' ? plan.durationValue :
+                        (plan?.durationDays || 30)
+                      )) * 100))}%` 
+                    }}
                   />
                 </div>
               </div>
