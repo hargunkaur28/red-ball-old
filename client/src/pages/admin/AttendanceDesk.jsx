@@ -38,6 +38,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import { Scanner } from '@yudiel/react-qr-scanner';
 import api from '../../lib/axios';
 import socket from '../../lib/socket';
 import { toast } from 'sonner';
@@ -156,7 +157,36 @@ export default function AttendanceDesk() {
     });
   };
 
-  // Quick simulation for QR scan
+  // Handle QR Scan
+  const handleScan = async (result) => {
+    if (!result || checkInMutation.isPending) return;
+    const decodedText = result[0]?.rawValue;
+    if (!decodedText) return;
+
+    if (decodedText.startsWith('MEMBERSHIP_')) {
+      const membershipId = decodedText.replace('MEMBERSHIP_', '');
+      try {
+        const res = await api.get(`/memberships/validate/${membershipId}`);
+        const membership = res.data.membership;
+        if (membership && membership.studentId) {
+          checkInMutation.mutate({
+            userId: membership.studentId._id,
+            method: 'qr-scan',
+            sport: selectedSport,
+            ground: selectedGround,
+            notes: 'Scanned Academy QR Badge'
+          });
+          toast.info(`Scanned Membership: ${membership.studentId.name}`);
+        }
+      } catch (error) {
+        toast.error(error.response?.data?.message || 'Invalid or Expired Membership QR');
+      }
+    } else {
+      toast.error('Invalid QR Code. Please scan a valid Membership Pass.');
+    }
+  };
+
+  // Quick simulation for QR scan (fallback)
   const handleSimulateQRScan = () => {
     if (!membershipsData?.memberships?.length) {
       toast.error('No active members available to simulate QR scan.');
@@ -447,22 +477,18 @@ export default function AttendanceDesk() {
                 </div>
               )}
 
-              {/* METHOD 2: QR SCANNER CAMERA SIMULATION */}
+              {/* METHOD 2: QR SCANNER CAMERA SIMULATION -> REAL SCANNER */}
               {checkInMethod === 'qr-scan' && (
                 <div className="space-y-4 text-center">
-                  <div className="bg-black/95 rounded-2xl p-8 border border-[#333333] shadow-inner relative overflow-hidden flex flex-col items-center justify-center min-h-[240px]">
-                    {/* Laser scanner line simulation */}
-                    <motion.div
-                      animate={{ y: [-90, 90] }}
-                      transition={{ repeat: Infinity, duration: 2, ease: 'linear' }}
-                      className="absolute w-full h-0.5 bg-green-500 shadow-[0_0_15px_rgba(34,197,94,1)] z-10"
+                  <div className="bg-black/95 rounded-2xl border border-[#333333] shadow-inner relative overflow-hidden flex flex-col items-center justify-center min-h-[300px]">
+                    <Scanner 
+                      onScan={handleScan}
+                      onError={(err) => console.log(err)}
+                      constraints={{ facingMode: 'environment' }}
+                      allowMultiple={false}
+                      scanDelay={2000}
                     />
-
-                    <div className="w-48 h-48 border-2 border-dashed border-white/40 rounded-2xl flex flex-col items-center justify-center space-y-2 relative">
-                      <Camera size={36} className="text-white/60 animate-pulse" />
-                      <p className="text-xs font-bold text-white tracking-wide">CAMERA SCANNER LIVE</p>
-                      <p className="text-[10px] text-gray-400">Position Academy ID card QR within frame</p>
-                    </div>
+                    <div className="absolute inset-0 pointer-events-none border-[24px] border-black/50 z-10" />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">

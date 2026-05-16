@@ -22,16 +22,30 @@ export default function QRCheckIn() {
     setScanning(false);
     
     try {
-      // Assuming decodedText is the Booking ID
-      const res = await api.get(`/bookings/${decodedText}`);
-      const booking = res.data.booking;
-
-      if (!booking) {
-        throw new Error('Booking not found');
+      if (decodedText.startsWith('MEMBERSHIP_')) {
+        const membershipId = decodedText.replace('MEMBERSHIP_', '');
+        const res = await api.get(`/memberships/validate/${membershipId}`);
+        const membership = res.data.membership;
+        setScannedResult({
+          type: 'membership',
+          _id: membership._id,
+          status: membership.status,
+          playerName: membership.studentId?.name || 'Academy Member',
+          slotName: membership.planId?.name || 'Membership Plan',
+          startTime: new Date().toLocaleTimeString(),
+          totalAmount: membership.planId?.price || 0,
+          rawMembership: membership
+        });
+        toast.info(`Membership found for ${membership.studentId?.name}`);
+      } else {
+        const res = await api.get(`/bookings/${decodedText}`);
+        const booking = res.data.booking;
+        if (!booking) {
+          throw new Error('Booking not found');
+        }
+        setScannedResult({ type: 'booking', ...booking });
+        toast.info(`Booking found for ${booking.playerName}`);
       }
-
-      setScannedResult(booking);
-      toast.info(`Booking found for ${booking.playerName}`);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Invalid QR Code');
       setScanning(true); // Resume scanning
@@ -49,7 +63,15 @@ export default function QRCheckIn() {
     
     setValidating(true);
     try {
-      await api.post(`/bookings/${scannedResult._id}/check-in`);
+      if (scannedResult.type === 'membership') {
+        await api.post('/attendance/check-in', {
+          userId: scannedResult.rawMembership.studentId._id,
+          method: 'qr-scan',
+          notes: 'Scanned at Reception QR Check-In'
+        });
+      } else {
+        await api.post(`/bookings/${scannedResult._id}/check-in`);
+      }
       toast.success('Check-in successful!');
       setScannedResult(null);
       setScanning(false);
@@ -123,26 +145,31 @@ export default function QRCheckIn() {
             animate={{ opacity: 1, scale: 1 }}
             className="card overflow-hidden"
           >
-            <div className={`p-6 text-center ${scannedResult.status === 'confirmed' ? 'bg-blue-600' : 'bg-green-600'} text-white`}>
+            <div className={`p-6 text-center ${(scannedResult.type === 'booking' && scannedResult.status === 'confirmed') || (scannedResult.type === 'membership' && scannedResult.status === 'active') ? 'bg-blue-600' : 'bg-green-600'} text-white`}>
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center mx-auto mb-3">
                 <User size={32} />
               </div>
               <h3 className="text-xl font-bold">{scannedResult.playerName}</h3>
-              <p className="text-white/80 text-sm">{scannedResult.status === 'confirmed' ? 'Booking Validated' : 'Already Checked-In'}</p>
+              <p className="text-white/80 text-sm">
+                {scannedResult.type === 'membership' 
+                  ? (scannedResult.status === 'active' ? 'Membership Validated' : `Membership ${scannedResult.status}`)
+                  : (scannedResult.status === 'confirmed' ? 'Booking Validated' : 'Already Checked-In')
+                }
+              </p>
             </div>
 
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Service</span>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">{scannedResult.type === 'membership' ? 'Plan' : 'Service'}</span>
                   <p className="font-bold flex items-center gap-2"><MapPin size={14} className="text-[#C8102E]" /> {scannedResult.slotName || 'Sport Session'}</p>
                 </div>
                 <div className="space-y-1 text-right">
                   <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Status</span>
-                  <p className={`font-bold capitalize ${scannedResult.status === 'confirmed' ? 'text-blue-600' : 'text-green-600'}`}>{scannedResult.status}</p>
+                  <p className={`font-bold capitalize ${(scannedResult.type === 'booking' && scannedResult.status === 'confirmed') || (scannedResult.type === 'membership' && scannedResult.status === 'active') ? 'text-blue-600' : 'text-green-600'}`}>{scannedResult.status}</p>
                 </div>
                 <div className="space-y-1">
-                  <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">Time Slot</span>
+                  <span className="text-[10px] uppercase tracking-wider text-gray-400 font-bold">{scannedResult.type === 'membership' ? 'Time of Entry' : 'Time Slot'}</span>
                   <p className="font-bold flex items-center gap-2"><Clock size={14} className="text-gray-400" /> {scannedResult.startTime}</p>
                 </div>
                 <div className="space-y-1 text-right">
@@ -158,7 +185,8 @@ export default function QRCheckIn() {
                 >
                   Cancel
                 </button>
-                {scannedResult.status === 'confirmed' && (
+                {((scannedResult.type === 'booking' && scannedResult.status === 'confirmed') || 
+                  (scannedResult.type === 'membership' && scannedResult.status === 'active')) && (
                   <button 
                     onClick={handleCheckIn}
                     disabled={validating}

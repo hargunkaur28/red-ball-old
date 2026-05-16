@@ -15,7 +15,7 @@ export default function Analytics() {
       <PageHeader title="Analytics" subtitle="Detailed insights and reports" />
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <RevenueChart data={revenue?.revenue || []} />
-        <MembershipChart data={memberships?.memberships || []} />
+        <MembershipChart data={memberships} />
         <SalesChart data={sports?.sports || []} />
         <div className="card flex items-center justify-center text-[#888888] text-sm py-20">
           More analytics coming soon...

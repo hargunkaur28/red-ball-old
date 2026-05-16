@@ -18,4 +18,8 @@ router.put('/memberships/:id/renew', auth, authorize('superadmin', 'admin', 'rec
 router.put('/memberships/:id/freeze', auth, authorize('superadmin', 'admin'), mc.freezeMembership);
 router.put('/memberships/:id/unfreeze', auth, authorize('superadmin', 'admin'), mc.unfreezeMembership);
 
+// QR Check-in Integrations
+router.get('/memberships/validate/:id', auth, authorize('superadmin', 'admin', 'receptionist'), mc.validateMembershipQR);
+router.post('/memberships/:id/check-in', auth, authorize('superadmin', 'admin', 'receptionist'), mc.checkInMembership);
+
 module.exports = router;

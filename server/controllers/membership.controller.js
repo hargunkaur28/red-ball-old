@@ -2,6 +2,7 @@ const MembershipPlan = require('../models/MembershipPlan');
 const Membership = require('../models/Membership');
 const Payment = require('../models/Payment');
 const Admission = require('../models/Admission');
+const Attendance = require('../models/Attendance');
 const { calculateGST } = require('../utils/gstCalculator');
 const { getDurationMs } = require('../utils/dateUtils');
 const { verifyPaymentSignature } = require('../config/razorpay');
@@ -230,5 +231,90 @@ exports.getAllMemberships = async (req, res) => {
     res.json({ memberships });
   } catch (error) {
     res.status(500).json({ message: 'Server error.' });
+  }
+};
+
+// GET /api/memberships/validate/:id
+exports.validateMembershipQR = async (req, res) => {
+  try {
+    const membershipId = req.params.id;
+    const membership = await Membership.findById(membershipId)
+      .populate('studentId', 'name phone')
+      .populate('planId', 'name sports accessAreas');
+
+    if (!membership) {
+      return res.status(404).json({ message: 'Invalid QR: Membership not found' });
+    }
+
+    if (membership.status !== 'active') {
+      return res.status(400).json({ 
+        message: `Membership is ${membership.status}. Cannot check-in.`,
+        membership 
+      });
+    }
+
+    // Check if expired based on endDate
+    if (new Date(membership.endDate) < new Date()) {
+      return res.status(400).json({ 
+        message: 'Membership has expired. Please renew.',
+        membership 
+      });
+    }
+
+    // Check if already checked in recently (e.g. within last 2 hours without checkout)
+    const recentAttendance = await Attendance.findOne({
+      userId: membership.studentId._id,
+      date: {
+        $gte: new Date(new Date().setHours(0, 0, 0, 0)),
+      },
+      checkOutTime: null
+    }).sort({ createdAt: -1 });
+
+    if (recentAttendance) {
+      return res.status(400).json({
+        message: 'Already checked in today!',
+        membership,
+        alreadyCheckedIn: true
+      });
+    }
+
+    res.json({
+      valid: true,
+      membership,
+      student: membership.studentId,
+      plan: membership.planId
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Server error validating QR', error: error.message });
+  }
+};
+
+// POST /api/memberships/:id/check-in
+exports.checkInMembership = async (req, res) => {
+  try {
+    const membershipId = req.params.id;
+    const membership = await Membership.findById(membershipId).populate('studentId');
+
+    if (!membership || membership.status !== 'active') {
+      return res.status(400).json({ message: 'Invalid or inactive membership.' });
+    }
+
+    // Create attendance record
+    const attendance = await Attendance.create({
+      userId: membership.studentId._id,
+      date: new Date(),
+      checkInTime: new Date(),
+      checkInMethod: 'membership-id',
+      relatedBookingId: membership._id,
+      relatedBookingType: 'membership',
+    });
+
+    res.json({
+      message: 'Check-in successful!',
+      attendance
+    });
+
+  } catch (error) {
+    res.status(500).json({ message: 'Check-in failed.', error: error.message });
   }
 };

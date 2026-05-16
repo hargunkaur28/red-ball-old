@@ -6,11 +6,15 @@ import useAuthStore from '../../store/authStore';
 import PageHeader from '../../components/shared/PageHeader';
 import { formatCurrency } from '../../lib/utils';
 import { toast } from 'sonner';
-import { Trophy, Calendar, CreditCard, Clock, AlertTriangle, CheckCircle, Download, RefreshCw } from 'lucide-react';
+import { Trophy, Calendar, CreditCard, Clock, AlertTriangle, CheckCircle, Download, RefreshCw, QrCode, Share } from 'lucide-react';
+import { QRCodeCanvas } from 'qrcode.react';
+import html2canvas from 'html2canvas';
+import { useRef } from 'react';
 
 export default function Membership() {
   const { user } = useAuthStore();
   const qc = useQueryClient();
+  const cardRef = useRef(null);
 
   const { data } = useQuery({
     queryKey: ['my-membership'],
@@ -26,6 +30,22 @@ export default function Membership() {
     },
     onError: (e) => toast.error(e.response?.data?.message || 'Renewal failed'),
   });
+
+  const handleDownload = async () => {
+    if (!cardRef.current) return;
+    try {
+      const canvas = await html2canvas(cardRef.current, { scale: 3, backgroundColor: null, useCORS: true });
+      const link = document.createElement('a');
+      const safeName = user?.name || 'Member';
+      link.download = `RBA_Membership_${safeName.replace(/\s+/g, '_')}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      toast.success('Membership Card downloaded!');
+    } catch (err) {
+      console.error("html2canvas error:", err);
+      toast.error('Failed to generate pass: ' + err.message);
+    }
+  };
 
   const m = data?.membership;
   const plan = m?.planId;
@@ -109,6 +129,111 @@ export default function Membership() {
               </div>
             )}
           </motion.div>
+
+          {/* Digital Membership Pass (Apple Wallet Style) */}
+          <div className="flex flex-col md:flex-row gap-6 items-start">
+            
+            {/* The Pass */}
+            <div className="w-full md:w-auto relative group">
+              <div 
+                ref={cardRef} 
+                className={`relative w-full md:w-[340px] rounded-[32px] overflow-hidden shadow-2xl p-6 text-white ${
+                  m.status === 'active' ? 'bg-gradient-to-b from-[#111] via-[#1a1a1a] to-[#222]' :
+                  'bg-gradient-to-b from-[#444] via-[#555] to-[#666] grayscale'
+                }`}
+                style={{ fontFamily: "'DM Sans', sans-serif" }}
+              >
+                {/* Shine effect */}
+                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 transform -translate-x-full group-hover:translate-x-full" />
+                
+                {/* Header */}
+                <div className="flex justify-between items-center mb-6">
+                  <div className="w-10 h-10 bg-[#C8102E] rounded-xl flex items-center justify-center font-black text-xl tracking-tighter shadow-lg shadow-red-900/50">
+                    RB
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] uppercase tracking-[0.2em] text-[#888] font-bold">Entry Pass</p>
+                    <p className="text-sm font-bold tracking-wider" style={{ fontFamily: "'Bebas Neue', sans-serif" }}>RED BALL ACADEMY</p>
+                  </div>
+                </div>
+
+                {/* Member Info */}
+                <div className="mb-6">
+                  <h3 className="text-2xl font-black capitalize tracking-tight leading-none mb-1">{user.name}</h3>
+                  <p className="text-xs text-[#888] uppercase tracking-wider font-bold">{plan?.name || 'Membership'}</p>
+                </div>
+
+                {/* QR Section */}
+                <div className="bg-white p-4 rounded-3xl mx-auto w-48 h-48 flex items-center justify-center shadow-inner mb-6 relative">
+                  <QRCodeCanvas 
+                    value={`MEMBERSHIP_${m._id}`} 
+                    size={160} 
+                    level="H" 
+                    includeMargin={false}
+                  />
+                  {m.status !== 'active' && (
+                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-3xl flex items-center justify-center">
+                      <span className="bg-red-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest shadow-lg">
+                        {m.status}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Details Grid */}
+                <div className="bg-white/5 rounded-2xl p-4 border border-white/10 grid grid-cols-2 gap-y-4 gap-x-2">
+                  <div>
+                    <p className="text-[9px] uppercase tracking-wider text-[#888] font-bold mb-0.5">Valid Thru</p>
+                    <p className="text-xs font-bold text-[#EAEAEA]">{m.endDate ? new Date(m.endDate).toLocaleDateString('en-IN') : 'N/A'}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[9px] uppercase tracking-wider text-[#888] font-bold mb-0.5">Status</p>
+                    <p className={`text-xs font-bold capitalize ${m.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>{m.status}</p>
+                  </div>
+                  <div className="col-span-2">
+                    <p className="text-[9px] uppercase tracking-wider text-[#888] font-bold mb-0.5">Access</p>
+                    <p className="text-xs font-bold text-[#EAEAEA] capitalize truncate">
+                      {plan?.sportsIncluded?.join(', ') || 'Facility'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Card Actions */}
+            <div className="flex flex-col gap-3 w-full md:w-auto mt-2 md:mt-0">
+              <div className="card p-5 border border-[#EAEAEA] shadow-sm max-w-sm">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <QrCode size={20} />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-[#111]">Digital Access</h4>
+                    <p className="text-xs text-[#666]">Scan at reception or attendance desk to instantly check-in.</p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <button onClick={handleDownload} className="btn-primary w-full py-2.5 text-sm flex justify-center gap-2">
+                    <Download size={16} /> Save to Phone
+                  </button>
+                  <button onClick={() => {
+                    if (navigator.share) {
+                      navigator.share({
+                        title: 'My Red Ball Membership',
+                        text: `Hey, this is my Red Ball Academy access pass.`,
+                        url: window.location.href,
+                      });
+                    } else {
+                      handleDownload();
+                    }
+                  }} className="btn-ghost border border-[#EAEAEA] w-full py-2.5 text-sm flex justify-center gap-2">
+                    <Share size={16} /> Share Pass
+                  </button>
+                </div>
+              </div>
+            </div>
+
+          </div>
 
           {/* Plan Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
