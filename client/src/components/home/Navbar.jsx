@@ -28,28 +28,50 @@ const dropdownRight = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [isLightSection, setIsLightSection] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
+
+    // Intersection Observer to detect light sections
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const intersectingLight = entries.some(entry => entry.isIntersecting);
+        setIsLightSection(intersectingLight);
+      },
+      {
+        rootMargin: '-80px 0px -90% 0px', // Check top 80px (navbar height)
+        threshold: 0
+      }
+    );
+
+    const lightSections = document.querySelectorAll('[data-theme="light"]');
+    lightSections.forEach(section => observer.observe(section));
+
     window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      observer.disconnect();
+    };
   }, []);
 
-  // Prevent body scroll when drawer is open
-  useEffect(() => {
-    document.body.style.overflow = drawerOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [drawerOpen]);
+  const textColor = isLightSection ? 'text-[#0D0D0D]' : 'text-white';
+  const logoColor = isLightSection ? 'text-[#0D0D0D]' : 'text-white';
+  const hamburgerColor = isLightSection ? 'bg-[#0D0D0D]' : 'bg-white';
 
   return (
     <>
       <header
-        className="fixed top-0 left-0 right-0 z-50 transition-all duration-[350ms] ease-in-out"
+        className="fixed top-0 left-0 right-0 z-50 transition-all duration-[400ms] ease-in-out"
         style={{
-          backgroundColor: scrolled ? '#0D0D0D' : 'transparent',
-          boxShadow: scrolled ? '0 2px 20px rgba(0,0,0,0.6)' : 'none',
+          backgroundColor: scrolled 
+            ? (isLightSection ? 'rgba(255, 255, 255, 0.4)' : 'rgba(0, 0, 0, 0.1)') 
+            : 'transparent',
+          backdropFilter: scrolled ? 'blur(24px)' : 'none',
+          WebkitBackdropFilter: scrolled ? 'blur(24px)' : 'none',
+          boxShadow: scrolled ? '0 8px 32px rgba(0, 0, 0, 0.15)' : 'none',
         }}
       >
         <div className="max-w-[1280px] mx-auto flex items-center justify-between px-4 md:px-8 lg:px-12 py-4">
@@ -64,7 +86,7 @@ export default function Navbar() {
               </svg>
             </div>
             <span
-              className="text-white text-lg tracking-[2px] uppercase hidden sm:block"
+              className={`${logoColor} text-lg tracking-[2px] uppercase hidden sm:block transition-colors duration-300`}
               style={{ fontFamily: "'Bebas Neue', sans-serif" }}
             >
               Red Ball Cricket Academy
@@ -82,7 +104,7 @@ export default function Navbar() {
               >
                 <a
                   href={link.href}
-                  className="nav-link px-4 py-2 text-white text-[15px] font-medium flex items-center gap-1 transition-colors hover:text-white"
+                  className={`nav-link px-4 py-2 ${textColor} text-[15px] font-medium flex items-center gap-1 transition-colors hover:text-[#C8102E]`}
                   style={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 500 }}
                 >
                   {link.label}
@@ -150,7 +172,11 @@ export default function Navbar() {
           <div className="flex items-center gap-3">
             <Link
               to="/login"
-              className="hidden md:inline-flex px-5 py-2 rounded-full border-2 border-[#F5A623] text-[#F5A623] text-sm font-medium transition-all duration-200 hover:bg-[#F5A623] hover:text-black"
+              className={`hidden md:inline-flex px-5 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 ${
+                isLightSection 
+                  ? 'border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white' 
+                  : 'border-[#F5A623] text-[#F5A623] hover:bg-[#F5A623] hover:text-black'
+              }`}
               style={{ fontFamily: "'DM Sans', sans-serif" }}
             >
               Login
@@ -169,9 +195,9 @@ export default function Navbar() {
               className={`lg:hidden flex flex-col justify-center items-center w-10 h-10 gap-[6px] ${drawerOpen ? 'hamburger-open' : ''}`}
               aria-label="Toggle menu"
             >
-              <span className="hamburger-line block w-6 h-[2px] bg-white rounded-full origin-center" />
-              <span className="hamburger-line block w-6 h-[2px] bg-white rounded-full origin-center" />
-              <span className="hamburger-line block w-6 h-[2px] bg-white rounded-full origin-center" />
+              <span className={`hamburger-line block w-6 h-[2px] ${hamburgerColor} rounded-full origin-center transition-all duration-300`} />
+              <span className={`hamburger-line block w-6 h-[2px] ${hamburgerColor} rounded-full origin-center transition-all duration-300`} />
+              <span className={`hamburger-line block w-6 h-[2px] ${hamburgerColor} rounded-full origin-center transition-all duration-300`} />
             </button>
           </div>
         </div>

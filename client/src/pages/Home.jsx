@@ -37,21 +37,27 @@ export default function Home() {
       )}
 
       {/* Main Homepage Content — fades in after intro */}
+      {!showIntro && <Navbar />}
       <motion.div
         initial={showIntro ? { opacity: 0, filter: 'blur(20px)', scale: 1.04 } : { opacity: 1, filter: 'blur(0px)', scale: 1 }}
         animate={{ opacity: 1, filter: 'blur(0px)', scale: 1 }}
         transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: showIntro ? 0.15 : 0 }}
       >
-        <Navbar />
         <HeroSection />
         <FacilityRentals />
         <TrainingPrograms />
-        <AboutSection />
+        <div id="section-about" data-theme="light">
+          <AboutSection />
+        </div>
         <ValuesMarquee />
         <RestaurantTeaser />
-        <MembershipPlans />
+        <div id="section-membership" data-theme="light">
+          <MembershipPlans />
+        </div>
         <Testimonials />
-        <PortalCTA />
+        <div id="section-portal" data-theme="light">
+          <PortalCTA />
+        </div>
         <MotivationalBanner />
         <ContactSection />
         <Footer />
