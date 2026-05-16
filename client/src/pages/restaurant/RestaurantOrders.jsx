@@ -61,11 +61,18 @@ export default function RestaurantOrders() {
 
   const orders = data?.orders || [];
 
-  const filteredOrders = orders.filter(o =>
-    o._id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    o.customerName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    o.tableId?.label?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredOrders = orders.filter(o => {
+    // Only show cash orders or paid online orders
+    const isValidPayment = o.paymentMethod === 'cash' || o.paymentStatus === 'paid';
+    if (!isValidPayment) return false;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      o._id.toLowerCase().includes(query) ||
+      o.customerName?.toLowerCase().includes(query) ||
+      o.tableId?.label?.toLowerCase().includes(query)
+    );
+  });
 
   const getStatusBadge = (status) => {
     const styles = {

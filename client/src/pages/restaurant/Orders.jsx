@@ -8,13 +8,21 @@ import { toast } from 'sonner';
 import { io } from 'socket.io-client';
 import { Clock, ChefHat, CheckCircle, Truck, X, AlertTriangle, DollarSign, FileText, User, Phone, LayoutGrid, List } from 'lucide-react';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000');
 
 const statusConfig = {
   new: { label: 'New Orders', color: 'border-blue-500 bg-blue-50/40', headerBg: 'bg-blue-600 text-white', icon: <Clock size={18} /> },
   preparing: { label: 'Preparing', color: 'border-amber-500 bg-amber-50/40', headerBg: 'bg-amber-500 text-black', icon: <ChefHat size={18} /> },
   ready: { label: 'Ready for Table', color: 'border-green-500 bg-green-50/40', headerBg: 'bg-green-600 text-white', icon: <CheckCircle size={18} /> },
   delivered: { label: 'Delivered / Closed', color: 'border-gray-300 bg-gray-50/40', headerBg: 'bg-gray-700 text-white', icon: <Truck size={18} /> },
+};
+
+const getTimeAgo = (mins) => {
+  if (mins < 60) return `${mins} min ago`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}h ${mins % 60}m ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ${hours % 24}h ago`;
 };
 
 export default function RestaurantOrders() {
@@ -175,10 +183,10 @@ export default function RestaurantOrders() {
                               <span className="font-mono font-black text-xs text-black">
                                 {order.orderNumber}
                               </span>
-                              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
-                                diffMins > 25 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-gray-100 text-gray-700'
+                              <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${
+                                diffMins > 25 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'
                               }`}>
-                                ⏱️ {diffMins} min ago
+                                ⏱️ {getTimeAgo(diffMins)}
                               </span>
                             </div>
 
@@ -331,8 +339,8 @@ export default function RestaurantOrders() {
                           <div className="space-y-1">
                             <div className="flex items-center gap-2 mb-1">
                               <span className="font-mono text-xs font-bold bg-gray-100 px-2 py-0.5 rounded-full">{order.orderNumber}</span>
-                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${diffMins > 25 ? 'bg-red-100 text-red-700 animate-pulse' : 'bg-gray-100 text-gray-700'}`}>
-                                ⏱️ {diffMins} min ago
+                              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap ${diffMins > 25 ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-700'}`}>
+                                ⏱️ {getTimeAgo(diffMins)}
                               </span>
                             </div>
                             <div className="flex items-center gap-1.5 text-xs text-black font-black uppercase tracking-tighter">

@@ -9,7 +9,7 @@ import { toast } from 'sonner';
 import { io } from 'socket.io-client';
 import { Clock, Flame, CheckCircle, AlertCircle, ShoppingBag, X, Plus, User, Phone, FileText, Sparkles, ArrowRight, ArrowLeft, ChefHat, CheckCircle2 } from 'lucide-react';
 
-const SOCKET_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+const SOCKET_URL = import.meta.env.VITE_SOCKET_URL || (import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000');
 const CATEGORIES = ['All', 'Featured', 'Protein Meals', 'Drinks', 'Recovery Shakes', 'Snacks', 'Healthy Bowls', 'Recovery Combos', 'High Carb Meals', 'Vegetarian'];
 
 // Initial Premium Sports Café Dishes (Exact match with homepage showcase + additions)
@@ -989,7 +989,9 @@ export default function TableOrder() {
                       No orders placed from this table yet. Place your first order from the menu!
                     </div>
                   ) : (
-                    tableOrdersData.orders.map(order => (
+                    tableOrdersData.orders
+                      .filter(o => o.paymentMethod === 'cash' || o.paymentStatus === 'paid')
+                      .map(order => (
                       <div key={order._id} className="p-4 bg-black/50 rounded-2xl border border-white/10 space-y-3 text-left">
                         <div className="flex items-center justify-between border-b border-white/5 pb-2">
                           <div>
