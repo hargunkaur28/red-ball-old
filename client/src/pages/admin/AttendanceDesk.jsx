@@ -568,8 +568,8 @@ export default function AttendanceDesk() {
 
                           <div className="flex items-center gap-4 text-xs text-[#666666] flex-wrap">
                             <span className="flex items-center gap-1 font-semibold text-black"><Clock size={12} /> In: {checkInTimeStr}</span>
-                            <span className="flex items-center gap-1"><MapPin size={12} /> {player.ground || 'Court A'}</span>
-                            <span className="capitalize">• {player.sport || 'cricket'}</span>
+                            {player.ground && <span className="flex items-center gap-1"><MapPin size={12} /> {player.ground}</span>}
+                            {player.sport && <span className="capitalize">• {player.sport}</span>}
                           </div>
                           {player.notes && <p className="text-[11px] text-[#888888] italic">Note: {player.notes}</p>}
                         </div>
@@ -595,7 +595,9 @@ export default function AttendanceDesk() {
                     <div key={p._id} className="p-2.5 rounded-xl bg-[#F7F7F7] border border-[#EAEAEA] flex items-center justify-between text-xs">
                       <div>
                         <span className="font-bold text-[#111111]">{p.userId?.name}</span>
-                        <span className="text-[10px] text-[#666666] ml-2">({p.ground} • {p.sport})</span>
+                        {(p.ground || p.sport) && (
+                          <span className="text-[10px] text-[#666666] ml-2">({[p.ground, p.sport].filter(Boolean).join(' • ')})</span>
+                        )}
                       </div>
                       <span className="font-semibold text-green-700 bg-green-50 border border-green-200 px-2 py-0.5 rounded text-[10px]">
                         Stay: {p.duration || 60} mins
@@ -791,7 +793,9 @@ export default function AttendanceDesk() {
                       .map((record) => (
                         <tr key={record._id} className="hover:bg-[#F9F9F9] transition-colors">
                           <td className="p-3 font-bold text-[#111111]">{record.userId?.name || 'Walk-in'}</td>
-                          <td className="p-3 text-[#666666] capitalize">{record.sport || 'Cricket'} • {record.ground || 'Court A'}</td>
+                          <td className="p-3 text-[#666666] capitalize">
+                            {[record.sport, record.ground].filter(Boolean).join(' • ') || '—'}
+                          </td>
                           <td className="p-3 font-semibold">
                             {record.checkInTime ? new Date(record.checkInTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '—'}
                           </td>

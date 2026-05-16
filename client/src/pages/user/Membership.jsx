@@ -144,11 +144,11 @@ export default function Membership() {
                 style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
                 {/* Shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/0 via-white/10 to-white/0 opacity-0 group-hover:opacity-100 transition-opacity duration-1000 transform -translate-x-full group-hover:translate-x-full" />
+                <div className="absolute inset-0 bg-gradient-to-tr from-[rgba(255,255,255,0)] via-[rgba(255,255,255,0.1)] to-[rgba(255,255,255,0)] opacity-0 group-hover:opacity-100 transition-opacity duration-1000 transform -translate-x-full group-hover:translate-x-full" />
                 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
-                  <div className="w-10 h-10 bg-[#C8102E] rounded-xl flex items-center justify-center font-black text-xl tracking-tighter shadow-lg shadow-red-900/50">
+                  <div className="w-10 h-10 bg-[#C8102E] rounded-xl flex items-center justify-center font-black text-xl tracking-tighter shadow-[0_4px_15px_rgba(127,29,29,0.5)]">
                     RB
                   </div>
                   <div className="text-right">
@@ -172,8 +172,8 @@ export default function Membership() {
                     includeMargin={false}
                   />
                   {m.status !== 'active' && (
-                    <div className="absolute inset-0 bg-white/80 backdrop-blur-sm rounded-3xl flex items-center justify-center">
-                      <span className="bg-red-600 text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest shadow-lg">
+                    <div className="absolute inset-0 bg-[rgba(255,255,255,0.8)] rounded-3xl flex items-center justify-center">
+                      <span className="bg-[#DC2626] text-white text-[10px] font-black uppercase px-3 py-1 rounded-full tracking-widest shadow-[0_4px_6px_rgba(0,0,0,0.1)]">
                         {m.status}
                       </span>
                     </div>
@@ -181,14 +181,14 @@ export default function Membership() {
                 </div>
 
                 {/* Details Grid */}
-                <div className="bg-white/5 rounded-2xl p-4 border border-white/10 grid grid-cols-2 gap-y-4 gap-x-2">
+                <div className="bg-[rgba(255,255,255,0.05)] rounded-2xl p-4 border border-[rgba(255,255,255,0.1)] grid grid-cols-2 gap-y-4 gap-x-2">
                   <div>
                     <p className="text-[9px] uppercase tracking-wider text-[#888] font-bold mb-0.5">Valid Thru</p>
                     <p className="text-xs font-bold text-[#EAEAEA]">{m.endDate ? new Date(m.endDate).toLocaleDateString('en-IN') : 'N/A'}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[9px] uppercase tracking-wider text-[#888] font-bold mb-0.5">Status</p>
-                    <p className={`text-xs font-bold capitalize ${m.status === 'active' ? 'text-green-400' : 'text-red-400'}`}>{m.status}</p>
+                    <p className={`text-xs font-bold capitalize ${m.status === 'active' ? 'text-[#4ADE80]' : 'text-[#F87171]'}`}>{m.status}</p>
                   </div>
                   <div className="col-span-2">
                     <p className="text-[9px] uppercase tracking-wider text-[#888] font-bold mb-0.5">Access</p>
