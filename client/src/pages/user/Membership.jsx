@@ -263,47 +263,91 @@ export default function Membership() {
         ) : !attendanceData?.attendance || attendanceData.attendance.length === 0 ? (
           <div className="py-14 text-center text-sm text-white/45">No check-in history found yet.</div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[640px] text-left text-sm">
-              <thead>
-                <tr className="border-b border-white/10 text-xs uppercase tracking-[0.18em] text-white/38">
-                  <th className="px-6 py-4 font-semibold">Sport</th>
-                  <th className="px-6 py-4 font-semibold">Check-In</th>
-                  <th className="px-6 py-4 font-semibold">Check-Out</th>
-                  <th className="px-6 py-4 font-semibold">Duration</th>
-                  <th className="px-6 py-4 font-semibold">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {attendanceData.attendance.slice(0, 10).map((record) => {
-                  const duration = record.checkOutTime
-                    ? `${record.actualDurationMinutes || Math.round((new Date(record.checkOutTime) - new Date(record.checkInTime)) / 60000)} mins`
-                    : emptyDash;
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="w-full min-w-[640px] text-left text-sm">
+                <thead>
+                  <tr className="border-b border-white/10 text-xs uppercase tracking-[0.18em] text-white/38">
+                    <th className="px-6 py-4 font-semibold">Sport</th>
+                    <th className="px-6 py-4 font-semibold">Check-In</th>
+                    <th className="px-6 py-4 font-semibold">Check-Out</th>
+                    <th className="px-6 py-4 font-semibold">Duration</th>
+                    <th className="px-6 py-4 font-semibold">Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attendanceData.attendance.slice(0, 10).map((record) => {
+                    const duration = record.checkOutTime
+                      ? `${record.actualDurationMinutes || Math.round((new Date(record.checkOutTime) - new Date(record.checkInTime)) / 60000)} mins`
+                      : emptyDash;
 
-                  return (
-                    <tr key={record._id} className="border-b border-white/7 last:border-b-0">
-                      <td className="px-6 py-4 font-semibold capitalize text-white">{record.sport}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-white/58">{formatDateTime(record.checkInTime)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-white/58">
-                        {record.checkOutTime ? formatDateTime(record.checkOutTime) : (
-                          <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
-                            <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
-                            Active
+                    return (
+                      <tr key={record._id} className="border-b border-white/7 last:border-b-0">
+                        <td className="px-6 py-4 font-semibold capitalize whitespace-nowrap text-white">{record.sport}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-white/58">{formatDateTime(record.checkInTime)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-white/58">
+                          {record.checkOutTime ? formatDateTime(record.checkOutTime) : (
+                            <span className="inline-flex items-center gap-2 rounded-full border border-emerald-400/20 bg-emerald-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] text-emerald-300">
+                              <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-300" />
+                              Active
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-white/58">{duration}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-block rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${sessionStyles[record.sessionStatus] || 'border-white/10 bg-white/[0.05] text-white/55'}`}>
+                            {record.sessionStatus || 'Completed'}
                           </span>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards */}
+            <div className="md:hidden flex flex-col divide-y divide-white/10">
+              {attendanceData.attendance.slice(0, 10).map((record) => {
+                const duration = record.checkOutTime
+                  ? `${record.actualDurationMinutes || Math.round((new Date(record.checkOutTime) - new Date(record.checkInTime)) / 60000)} mins`
+                  : null;
+
+                return (
+                  <div key={record._id} className="p-5 flex flex-col gap-3">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white capitalize">{record.sport}</span>
+                      <span className={`inline-block rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider ${sessionStyles[record.sessionStatus] || 'border-white/10 bg-white/[0.05] text-white/55'}`}>
+                        {record.sessionStatus || 'Completed'}
+                      </span>
+                    </div>
+                    
+                    <div className="flex flex-col gap-1.5 text-xs text-white/55">
+                      <div className="flex justify-between">
+                        <span>Check-In:</span>
+                        <span className="text-white/80">{formatDateTime(record.checkInTime)}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Check-Out:</span>
+                        {record.checkOutTime ? (
+                          <span className="text-white/80">{formatDateTime(record.checkOutTime)}</span>
+                        ) : (
+                          <span className="text-emerald-400 font-bold animate-pulse">Active Now</span>
                         )}
-                      </td>
-                      <td className="px-6 py-4 text-white/58">{duration}</td>
-                      <td className="px-6 py-4">
-                        <span className={`inline-block rounded-full border px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] ${sessionStyles[record.sessionStatus] || 'border-white/10 bg-white/[0.05] text-white/55'}`}>
-                          {record.sessionStatus || 'Completed'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+                      </div>
+                      {duration && (
+                        <div className="flex justify-between mt-1 pt-1 border-t border-white/5">
+                          <span>Duration:</span>
+                          <span className="text-white/80 font-medium">{duration}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </>
         )}
       </Surface>
     </div>

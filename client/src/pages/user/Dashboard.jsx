@@ -96,7 +96,8 @@ export default function UserDashboard() {
   }, [qc]);
 
   const activeMemberships = membership?.memberships || (membership?.membership ? [membership.membership] : []);
-  const activeSession = sessionData?.activeSession;
+  const activeSessions = sessionData?.activeSessions || [];
+  const activeSession = activeSessions[0];
   const sessionState = useMemo(() => {
     if (!activeSession?.checkInTime) return null;
     const allowedMinutes = activeSession.allowedDurationMinutes || sessionData?.allowedDurationMinutes || 75;
@@ -208,8 +209,8 @@ export default function UserDashboard() {
         </Link>
       </motion.div>
 
-      {/* Active Sport Session */}
-      {activeSession && sessionState && (
+      {/* Active Sport Session (Standalone - only if not linked to a membership/pass) */}
+      {activeSession && sessionState && !activeMemberships.some(m => m._id === activeSession.relatedBookingId) && !passesList.some(p => p._id === activeSession.relatedBookingId) && (
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -257,9 +258,16 @@ export default function UserDashboard() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <div className="flex items-center gap-2 mb-2">
-                    {sc.icon}
-                    <span className="text-sm font-bold uppercase">{sc.text}</span>
+                  <div className="flex flex-wrap items-center gap-2 mb-2 pr-12">
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      {sc.icon}
+                      <span className="text-sm font-bold uppercase">{sc.text}</span>
+                    </div>
+                    {activeSessions.some(s => s.relatedBookingId === m._id) && (
+                      <span className={`px-2 py-0.5 shrink-0 whitespace-nowrap rounded text-[10px] font-extrabold uppercase tracking-wider ${sessionState?.tone?.split(' ')[1] || 'bg-green-500/10'} ${sessionState?.tone?.split(' ')[2] || 'text-green-200'} border ${sessionState?.tone?.split(' ')[0] || 'border-green-500/35'} animate-pulse`}>
+                        {sessionState?.message === 'Overtime charges now active' ? 'Overtime Active' : 'Currently Checked In'}
+                      </span>
+                    )}
                   </div>
                   <h2 className="text-2xl font-extrabold text-white">{plan?.name || 'No Plan'}</h2>
                   <p className="text-sm opacity-75 mt-1">
@@ -288,6 +296,31 @@ export default function UserDashboard() {
               {isPending && (
                 <div className="mt-4 p-3 bg-white/10 rounded-xl">
                   <p className="text-sm font-medium">⚠ Your membership is pending payment. Please contact the reception to complete payment.</p>
+                </div>
+              )}
+
+              {activeSessions.some(s => s.relatedBookingId === m._id) && (
+                <div className={`mt-5 pt-5 border-t border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4`}>
+                  <div className="flex items-start gap-4">
+                    <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center shrink-0">
+                      <TimerReset size={20} />
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-extrabold uppercase tracking-wider opacity-75">Active Session</p>
+                      <h3 className="text-lg font-extrabold text-white leading-tight">{activeSession?.sport || 'Sport'}</h3>
+                      <p className="text-xs font-semibold mt-0.5">Checked in: {sessionState?.checkInLabel}</p>
+                    </div>
+                  </div>
+                  <div className="md:text-right w-full md:w-auto">
+                    <p className={`text-xl font-black tabular-nums ${sessionState?.tone?.split(' ')[2] || ''}`}>{sessionState?.label}</p>
+                    <p className="text-[11px] font-semibold opacity-75 mt-0.5">{sessionState?.message} (Allowed: {sessionState?.allowedMinutes}m)</p>
+                    <Link
+                      to="/user/scan"
+                      className="mt-2 inline-flex w-full md:w-auto items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 border border-white/10 text-white text-xs font-bold hover:bg-white/20 transition-colors"
+                    >
+                      <QrCode size={14} /> Scan QR to Check Out
+                    </Link>
+                  </div>
                 </div>
               )}
             </motion.div>

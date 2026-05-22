@@ -25,7 +25,7 @@ export default function Navbar() {
   const [isLightSection, setIsLightSection] = useState(false);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState(false);
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated, user, logout } = useAuthStore();
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 80);
@@ -158,8 +158,8 @@ export default function Navbar() {
           {/* Right CTA */}
           <div className="flex items-center gap-3">
             {isAuthenticated ? (
-              <Link
-                to="/table-portal"
+              <button
+                onClick={() => logout()}
                 className={`hidden md:inline-flex px-5 py-2 rounded-full border-2 text-sm font-medium transition-all duration-200 ${
                   isLightSection 
                     ? 'border-[#C8102E] text-[#C8102E] hover:bg-[#C8102E] hover:text-white' 
@@ -167,8 +167,8 @@ export default function Navbar() {
                 }`}
                 style={{ fontFamily: "'DM Sans', sans-serif" }}
               >
-                Restaurant Menu
-              </Link>
+                Log out
+              </button>
             ) : (
               <Link
                 to="/login"
@@ -279,13 +279,15 @@ export default function Navbar() {
         {/* Drawer CTAs */}
         <div className="p-6 space-y-3">
           {isAuthenticated ? (
-            <Link
-              to="/table-portal"
-              onClick={() => setDrawerOpen(false)}
-              className="block text-center py-3 rounded-full border-2 border-[#F5A623] text-[#F5A623] font-medium transition-all hover:bg-[#F5A623] hover:text-black"
+            <button
+              onClick={() => {
+                logout();
+                setDrawerOpen(false);
+              }}
+              className="block w-full text-center py-3 rounded-full border-2 border-[#F5A623] text-[#F5A623] font-medium transition-all hover:bg-[#F5A623] hover:text-black"
             >
-              Restaurant Menu
-            </Link>
+              Log out
+            </button>
           ) : (
             <Link
               to="/login"

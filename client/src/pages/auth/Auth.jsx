@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 
 const demoCreds = [
   { role: 'Super Admin', email: 'admin@redball.com', pass: 'Admin@123' },
-  { role: 'Receptionist', email: 'reception@redball.com', pass: 'Reception@123' },
   { role: 'Restaurant Manager', email: 'restaurant@redball.com', pass: 'Manager@123' },
 ];
 

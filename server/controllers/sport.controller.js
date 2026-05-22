@@ -502,6 +502,14 @@ exports.entryCheck = async (req, res) => {
       activeCheckIn = validation.activeSessions.find(
         (s) => (s.sport || '').trim().toLowerCase() === sport.slug || (s.sport || '').trim().toLowerCase() === sport.name.toLowerCase()
       ) || null;
+      
+      const wrongSportCheckIn = validation.activeSessions.find(
+        (s) => (s.sport || '').trim().toLowerCase() !== sport.slug && (s.sport || '').trim().toLowerCase() !== sport.name.toLowerCase()
+      );
+      if (wrongSportCheckIn) {
+        validationAllowed = false;
+        validationReason = `Wrong QR Code! You are currently checked in for ${wrongSportCheckIn.sport || 'another sport'}. Please scan the ${wrongSportCheckIn.sport || 'correct'} QR to check out before checking into a new sport.`;
+      }
     }
 
     const activeSportKeys = await getActiveSportKeys();
@@ -682,9 +690,23 @@ exports.entryCheckOut = async (req, res) => {
     const attendance = await Attendance.findOne({
       userId: req.user.userId,
       sport: sport.name,
-      checkOutTime: null
+      checkOutTime: null,
+      sessionStatus: 'Active'
     });
+
     if (!attendance) {
+      const wrongSportAttendance = await Attendance.findOne({
+        userId: req.user.userId,
+        checkOutTime: null,
+        sessionStatus: 'Active'
+      });
+      
+      if (wrongSportAttendance) {
+        return res.status(400).json({ 
+          success: false, 
+          message: `Wrong QR Code! You are currently checked in for ${wrongSportAttendance.sport}. Please scan the ${wrongSportAttendance.sport} QR to check out.` 
+        });
+      }
       return res.status(404).json({ success: false, message: 'No active check-in session found for this sport.' });
     }
 
