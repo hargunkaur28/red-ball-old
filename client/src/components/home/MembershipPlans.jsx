@@ -27,22 +27,25 @@ const legacyPlans = [
 
 const plans = [
   {
-    name: 'Gym',
-    price: '1,400',
-    billing: 'Monthly · 10,000 yearly',
+    name: 'All Services',
+    price: '10,000',
+    duration: '/3 months',
+    billing: 'Billed quarterly',
     highlighted: false,
   },
   {
     name: 'All Services',
-    price: '10,000',
-    billing: '3 months · 30,000 yearly',
+    price: '18,000',
+    duration: '/6 months',
+    billing: 'Billed half-yearly',
     highlighted: true,
     badge: 'Best Value',
   },
   {
-    name: 'Coaching',
-    price: '3,000',
-    billing: 'Children coaching · 5PM-7PM',
+    name: 'All Services',
+    price: '30,000',
+    duration: '/year',
+    billing: 'Billed yearly',
     highlighted: false,
   },
 ];
@@ -72,7 +75,7 @@ const cardVariants = {
 };
 
 export default function MembershipPlans() {
-  const [activePlan, setActivePlan] = useState('Quarterly');
+  const [activePlan, setActivePlan] = useState('18,000');
 
   return (
     <section id="membership" className="bg-[#F9F6F1] py-20 md:py-28">
@@ -105,14 +108,14 @@ export default function MembershipPlans() {
           viewport={{ once: true }}
         >
           {plans.map((plan) => {
-            const isActive = activePlan === plan.name;
+            const isActive = activePlan === plan.price;
             
             return (
               <motion.div
-                key={plan.name}
+                key={plan.price}
                 variants={cardVariants}
-                onMouseEnter={() => setActivePlan(plan.name)}
-                onMouseLeave={() => setActivePlan('Quarterly')}
+                onMouseEnter={() => setActivePlan(plan.price)}
+                onMouseLeave={() => setActivePlan('18,000')}
                 className={`rounded-2xl p-6 sm:p-8 relative transition-all duration-300 cursor-default ${
                   isActive
                     ? 'bg-[#C8102E] text-white md:scale-[1.05] shadow-2xl z-10'
@@ -138,7 +141,7 @@ export default function MembershipPlans() {
                     ₹{plan.price}
                   </span>
                   <span className={`text-sm sm:text-base font-medium ${isActive ? 'text-white/70' : 'text-[#9CA3AF]'}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
-                    /month
+                    {plan.duration}
                   </span>
                 </div>
                 <p className={`text-xs sm:text-sm mb-6 ${isActive ? 'text-white/60' : 'text-[#9CA3AF]'}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>

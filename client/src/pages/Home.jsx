@@ -4,7 +4,7 @@ import CinematicIntro from '../components/CinematicIntro';
 import Navbar from '../components/home/Navbar';
 import HeroSection from '../components/home/HeroSection';
 import FacilityRentals from '../components/home/FacilityRentals';
-import TrainingPrograms from '../components/home/TrainingPrograms';
+
 import AboutSection from '../components/home/AboutSection';
 import ValuesMarquee from '../components/home/ValuesMarquee';
 import RestaurantTeaser from '../components/home/RestaurantTeaser';
@@ -63,9 +63,7 @@ export default function Home() {
         <FlowSection id="section-sports">
           <FacilityRentals />
         </FlowSection>
-        <FlowSection id="section-coaching">
-          <TrainingPrograms />
-        </FlowSection>
+
         <div id="section-about" data-theme="light">
           <AboutSection />
         </div>
